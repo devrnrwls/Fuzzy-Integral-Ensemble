@@ -30,7 +30,10 @@ Required Directory Structure:
 
 ```
 
-Run: `python main.py --data_directory "D:/data" --epochs 100`
+# Run: 
+```
+python main.py --data_directory "D:/data" --epochs 100`
+```
 
 # Result
 ```
