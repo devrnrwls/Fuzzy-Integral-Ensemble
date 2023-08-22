@@ -9,7 +9,7 @@ To install the dependencies, run the following using the command prompt:
 
 ## Running the code on the COVID data
 
-Download the dataset from [Kaggle](https://www.kaggle.com/plameneduardo/sarscov2-ctscan-dataset) and split it into train and validation sets in 80-20 ratio.
+Download the dataset from [Kaggle](https://www.kaggle.com/plameneduardo/sarscov2-ctscan-dataset) and split it into train and validation sets in 80-20 ratio. (validation(20) => covid: 376, non-COVID: 369)
 
 Required Directory Structure:
 ```
@@ -18,7 +18,11 @@ Required Directory Structure:
 +-- data
 |   +-- .
 |   +-- train
+|   +--      |+-- COVID
+|   +--      |+-- non-COVID
 |   +-- val
+|   +--      |+-- COVID
+|   +--      |+-- non-COVID
 +-- main.py
 +-- probability_extraction.py
 +-- ensemble.py
@@ -27,6 +31,10 @@ Required Directory Structure:
 ```
 
 Run: `python main.py --data_directory "D:/data" --epochs 100`
+
+# 기타
+torch vision에서 이용 가능한 models 확인: https://github.com/pytorch/vision/tree/main/torchvision/models
+(처음에는 main 브랜치로 되어 있으니 사용중인 버전의 브랜치로 이동 후 __init__.py 에서 모델 확인)
 
 # Citation
 If you found this repository helpful, please consider citing our paper:
