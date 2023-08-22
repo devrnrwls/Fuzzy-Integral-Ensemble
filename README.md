@@ -32,6 +32,41 @@ Required Directory Structure:
 
 Run: `python main.py --data_directory "D:/data" --epochs 100`
 
+# Result
+```
+Epoch 25/25
+----------
+train Loss: 0.0031 Acc: 1.0000
+val Loss: 0.7461 Acc: 0.7718
+
+Training complete in 6m 19s
+Best val Acc: 0.837584
+
+Getting the Probability Distribution
+Accuracy =  83.75838926174497
+Accuracy =  0.8389261744966443
+Classification Report:
+              precision    recall  f1-score   support
+
+       COVID     0.8245    0.8516    0.8378       364
+   Non-COVID     0.8537    0.8268    0.8400       381
+
+    accuracy                         0.8389       745
+   macro avg     0.8391    0.8392    0.8389       745
+weighted avg     0.8394    0.8389    0.8389       745
+
+Confusion matrix:
+[[310  54]
+ [ 66 315]]
+
+Classwise Accuracy :[0.85164835 0.82677165]
+
+Balanced Accuracy Score:  0.8392100025958293
+
+Process finished with exit code 0
+
+```
+
 # 기타
 torch vision에서 이용 가능한 models 확인: https://github.com/pytorch/vision/tree/main/torchvision/models
 
