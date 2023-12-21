@@ -87,12 +87,12 @@ def get_metrics(work_category, image_datasets, class_names, num_classes, model, 
 if __name__ == '__main__':
 
     data_dir = "./packaging/"
-    work_category = 'val'
-    incorrect_image_check = True
+    work_category = 'blur_test'
+    incorrect_image_check = False
 
     #Kaggle_vgg11 Kaggle_googlenet Kaggle_squeezenet Kaggle_wideresnet
     model_dir = "Result/train_result/"
-    model_name = 'Kaggle_googlenet'
+    model_name = 'Kaggle_vgg11'
 
     mean = np.array([0.957, 0.900, 0.852])
     std = np.array([0.126, 0.215, 0.266])
@@ -116,8 +116,8 @@ if __name__ == '__main__':
 
     if model_name == "Kaggle_vgg11":
         model = models.vgg11_bn(pretrained=False)
-        num_ftrs = model.classifier[0].in_features
-        model.classifier = nn.Linear(num_ftrs, num_classes)
+        num_ftrs = model.classifier[6].in_features
+        model.classifier[6] = nn.Linear(num_ftrs, num_classes)
         model = model.to(device)
         model.load_state_dict(torch.load(os.path.join(model_dir_modelName, model_name + '.pth')))
         model.eval()
