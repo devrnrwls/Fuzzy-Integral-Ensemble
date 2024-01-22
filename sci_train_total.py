@@ -52,7 +52,7 @@ def plot(val_loss, train_loss, result_path, typ):
 
 def get_probability(image_datasets, model, result_path, num_classes, model_name):
     print("\nGetting the Probability Distribution")
-    testloader = torch.utils.data.DataLoader(image_datasets['val'], batch_size=1)
+    testloader = torch.utils.data.DataLoader(image_datasets['val'], batch_size=64)
 
     model = model.eval()
 
@@ -167,8 +167,16 @@ def train_model(model, criterion, optimizer, scheduler, device, dataloaders, dat
     return model
 
 def main():
-    mean = np.array([0.957, 0.900, 0.852])
-    std = np.array([0.126, 0.215, 0.266])
+    # mean = np.array([0.957, 0.900, 0.852])
+    # std = np.array([0.126, 0.215, 0.266])
+
+    #canny
+    # mean = np.array([0.039, 0.039, 0.039])
+    # std = np.array([0.193, 0.193, 0.193])
+
+    #sobel
+    # mean = np.array([0.034, 0.035, 0.036])
+    # std = np.array([0.12, 0.12, 0.12])
 
     data_dir = "./packaging/"
 
@@ -176,19 +184,19 @@ def main():
         'train': transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize(mean, std)
+            # transforms.Normalize(mean, std)
         ]),
         'val': transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize(mean, std)
+            # transforms.Normalize(mean, std)
         ]),
     }
 
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               data_transforms[x])
                       for x in ['train', 'val']}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=16,
+    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=64,
                                                   shuffle=True, num_workers=0) for x in ['train', 'val']}
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
@@ -198,6 +206,7 @@ def main():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    print(device)
     print(class_names)
 
     # Get a batch of training data
@@ -209,7 +218,7 @@ def main():
     # imshow(out, title=[class_names[x] for x in classes])
 
     dateFile = create_folder_with_datetime(data_dir)
-    num_epochs = 5
+    num_epochs = 150
 
     criterion = nn.CrossEntropyLoss()
 
@@ -219,15 +228,68 @@ def main():
     result_path = os.path.join(dateFile, model_name)
     os.makedirs(result_path)
 
-    model = models.vgg11_bn(pretrained=True)
+    model = models.vgg11_bn(pretrained=False)
+    num_ftrs = model.classifier[6].in_features
+    model.classifier[6] = nn.Linear(num_ftrs, num_classes)
+    model = model.to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0)
+    step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
+    model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path, num_epochs,
+                        model_name)
+    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_vgg11')
+
+    # Kaggle_vgg19
+    model_name = 'Kaggle_vgg19'
+    print(model_name)
+    result_path = os.path.join(dateFile, model_name)
+    os.makedirs(result_path)
+
+    model = models.vgg19_bn(pretrained=True)
     num_ftrs = model.classifier[6].in_features
     model.classifier[6] = nn.Linear(num_ftrs, num_classes)
     model = model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.99)
     step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-    model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path, num_epochs,
+    model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path,
+                        num_epochs,
                         model_name)
-    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_vgg11')
+    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_vgg19')
+
+    # 'Kaggle_mobilenet_v3_small'
+    model_name = 'Kaggle_mobilenet_v3_small'
+    print(model_name)
+    result_path = os.path.join(dateFile, model_name)
+    os.makedirs(result_path)
+
+    model = models.mobilenet_v3_small(pretrained=True)
+    num_ftrs = model.classifier[3].in_features
+    model.classifier[3] = nn.Linear(num_ftrs, num_classes)
+    model = model.to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.99)
+    step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+    model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path,
+                        num_epochs,
+                        model_name)
+    get_probability(image_datasets, model, result_path, num_classes, model_name=model_name)
+
+    # 'Kaggle_mobilenet_v3_large'
+    model_name = 'Kaggle_mobilenet_v3_large'
+    print(model_name)
+    result_path = os.path.join(dateFile, model_name)
+    os.makedirs(result_path)
+
+    model = models.mobilenet_v3_large(pretrained=True)
+    num_ftrs = model.classifier[3].in_features
+    model.classifier[3] = nn.Linear(num_ftrs, num_classes)
+    model = model.to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.99)
+    step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+    model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path,
+                        num_epochs,
+                        model_name)
+    get_probability(image_datasets, model, result_path, num_classes, model_name=model_name)
 
     #'Kaggle_googlenet'
     model_name = 'Kaggle_googlenet'
@@ -243,7 +305,7 @@ def main():
     step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path, num_epochs,
                         model_name)
-    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_googlenet')
+    get_probability(image_datasets, model, result_path, num_classes, model_name=model_name)
 
     #Kaggle_squeezenet
     model_name = 'Kaggle_squeezenet'
@@ -258,7 +320,7 @@ def main():
     step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path, num_epochs,
                         model_name)
-    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_squeezenet')
+    get_probability(image_datasets, model, result_path, num_classes, model_name=model_name)
 
 
     #Kaggle_wideresnet
@@ -276,7 +338,7 @@ def main():
     step_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     model = train_model(model, criterion, optimizer, step_lr_scheduler, device, dataloaders, dataset_sizes, result_path, num_epochs,
                         model_name)
-    get_probability(image_datasets, model, result_path, num_classes, model_name='Kaggle_wideresnet')
+    get_probability(image_datasets, model, result_path, num_classes, model_name=model_name)
 
 if __name__ == "__main__":
 	main()
